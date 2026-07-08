@@ -1,5 +1,8 @@
 # Modeling relations between musical events in continuous time with transformer models for live co-improvisational interactions
 
+Supplementary materials for this paper, including audio and video examples, can be found at [the companion page](https://vincenzomadaghiele.github.io/co-impro-transformer-AIMC/)
+
+
 ## 1. Install dependencies
 Download and install uv from [here](https://docs.astral.sh/uv/guides/install-python/)
 
