@@ -2,6 +2,8 @@
 
 Supplementary materials for this paper, including audio and video examples, can be found at [the companion page](https://vincenzomadaghiele.github.io/co-impro-transformer-AIMC/)
 
+<img src="https://github.com/vincenzomadaghiele/co-impro-transformer/blob/main/seq2seqAIMC_diagram.png" alt="drawing"  width="100%"/>
+
 This paper presents a live semi-autonomous system that co-improvises with a live musician using a model learned from the relationship observed in paired recordings of an improvising duo. This responsive system is based on a deep learning approach that models the relations between sequences of events produced by co-playing musicians in continuous time, using transformer models. We present the architecture for simultaneous sequences of sonic events and provide a quantitative evaluation on several representative tasks. Results are compared against a canonical transformer and a multichannel Factor Oracle, the latter being a widely used model for live sequence‑based symbolic music generation. We detail a live implementation employing concatenative synthesis and introduce a customization procedure in which the generative model is iteratively retrained on curated, satisfactory sections from sound recordings of actual human-system co-improvisational interactions. This iterative fine-tuning enables the model's stylistic output to diverge from the original training corpus. Two musical use cases demonstrate the application of this technique. 
 
 More information in the paper ([bib](./seq2seqAIMC.bib)):
@@ -38,4 +40,17 @@ python3 transformerT2V_live.py
 Fine-tune model with recordings: 
 ```
 python3 transformerT2V_finetune.py
+```
+
+## Cite
+```
+@misc{madaghiele_2026_22276042,
+  author       = {Madaghiele, Vincenzo and Fasciani, Stefano and Kelkar, Tejaswinee and Erdem, Çağrı},
+  title        = {Modeling Relations Between Musical Events in Continuous Time with Transformer Models for Live Co-Improvisational Interactions},
+  month        = sep,
+  year         = 2026,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.22276042},
+  url          = {https://doi.org/10.5281/zenodo.22276042},
+}
 ```
