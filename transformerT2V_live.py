@@ -10,7 +10,7 @@ from pynput.keyboard import Key, Listener, KeyCode
 
 import dataProcess
 from dataOnsetDetect import OnsetDetection
-from transformerDiscreteT2V import TransformerDiscreteT2V
+from transformerT2V import TransformerDiscreteT2V
 
 
 

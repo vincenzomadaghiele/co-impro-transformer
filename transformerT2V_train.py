@@ -21,8 +21,8 @@ import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 
 import dataProcess
-from transformerDiscreteT2V import TransformerDiscreteT2V
-# from transformerDiscreteT2V_evaluate import renderModelOutput
+from transformerT2V import TransformerDiscreteT2V
+# from transformerT2V_evaluate import renderModelOutput
 
 
 def batchify(data, batch_size=16):
@@ -174,9 +174,9 @@ def trainTransformerDiscreteT2V(training_parameters, save_dir, model_load_path=N
 		json.dump(training_parameters, f, ensure_ascii=False, indent=4)
 
 	# SAVE PROCESSING PARAMETERS
-	with open(f'{training_parameters['source_corpus_path']}/featureExtraction_params.json', 'r') as f:
+	with open(f'{training_parameters["source_corpus_path"]}/featureExtraction_params.json', 'r') as f:
 		src_processing_params = json.load(f)
-	with open(f'{training_parameters['target_corpus_path']}/featureExtraction_params.json', 'r') as f:
+	with open(f'{training_parameters["target_corpus_path"]}/featureExtraction_params.json', 'r') as f:
 		tgt_processing_params = json.load(f)
 
 	# MAKE SURE DATASETS WERE COMPUTED WITH SAME PARAMETERS
@@ -211,8 +211,8 @@ def trainTransformerDiscreteT2V(training_parameters, save_dir, model_load_path=N
 
 
 	# LOAD CORPUS
-	source_corpus_df = pd.read_csv(f'{training_parameters['source_corpus_path']}/corpus_discrete.csv', index_col=0)
-	target_corpus_df = pd.read_csv(f'{training_parameters['target_corpus_path']}/corpus_discrete.csv', index_col=0)
+	source_corpus_df = pd.read_csv(f'{training_parameters["source_corpus_path"]}/corpus_discrete.csv', index_col=0)
+	target_corpus_df = pd.read_csv(f'{training_parameters["target_corpus_path"]}/corpus_discrete.csv', index_col=0)
 	src_signals_dfs = []
 	tgt_signals_dfs = []
 	unique_src_filenames = source_corpus_df['filename'].unique()
@@ -223,8 +223,8 @@ def trainTransformerDiscreteT2V(training_parameters, save_dir, model_load_path=N
 	# common_filenames = common_filenames[:4] # select a subset of data
 	for filename in common_filenames:
 		# assume that audio tracks are located one folder before datasets
-		partial_src_df = source_corpus_df[source_corpus_df['filename'] == f'{training_parameters['sound_corpus_path']}/{filename}/{src_processing_params['source_track_name']}.wav']
-		partial_tgt_df = target_corpus_df[target_corpus_df['filename'] == f'{training_parameters['sound_corpus_path']}/{filename}/{src_processing_params['target_track_name']}.wav']
+		partial_src_df = source_corpus_df[source_corpus_df['filename'] == f'{training_parameters["sound_corpus_path"]}/{filename}/{src_processing_params["source_track_name"]}.wav']
+		partial_tgt_df = target_corpus_df[target_corpus_df['filename'] == f'{training_parameters["sound_corpus_path"]}/{filename}/{src_processing_params["target_track_name"]}.wav']
 		# check that both are non-empty
 		if partial_src_df.shape[0] > 0 and partial_tgt_df.shape[0] > 0:
 			src_signals_dfs.append(partial_src_df)
@@ -233,6 +233,7 @@ def trainTransformerDiscreteT2V(training_parameters, save_dir, model_load_path=N
 		# tgt_signals_dfs.append(target_corpus_df[target_corpus_df['filename'] == f'{training_parameters['sound_corpus_path']}/{filename}/{src_processing_params['target_track_name']}.wav'])
 
 	print(source_corpus_df.head())
+	# print(target_corpus_df.head())
 	# print(source_corpus_df.columns)
 
 	# normalize source features
@@ -291,6 +292,76 @@ def trainTransformerDiscreteT2V(training_parameters, save_dir, model_load_path=N
 			data.append([x_src, x_tgt, y_tgt])
 			seq_lens.append(x_src.shape[0])
 			seq_lens.append(x_tgt.shape[0])
+
+	# DATA AUGMENTATION
+	rmsTranspose = True
+	pitchTranspose = True
+	durationTranspose = True
+	latentsTranspose = False
+	maskAugment = False
+	randomSubstitute = True
+	NUM_AUGMENT = training_parameters['augment_amt']
+	rmsIndexSrc = features_source.index("rms_mean")
+	rmsIndexTgt = features_target.index("rms_mean")
+	pitchIndexSrc = features_source.index("pitch_mean")
+	pitchIndexTgt = features_target.index("pitch_mean")
+	durationIndexSrc = features_source.index("event_duration")
+	durationIndexTgt = features_target.index("event_duration")
+	# latentIndexSrc = [features_source.index(f"latent-{j}") for j in range(training_parameters['N_latents_src'])]
+	# latentIndexTgt = [features_source.index(f"latent-{j}") for j in range(training_parameters['N_latents_tgt'])]
+	new_data = []
+	for datum in data:
+		if datum[0].shape[0] > 0 and datum[1].shape[0] > 0:
+			x_src = datum[0].copy()
+			x_tgt = datum[1].copy()
+			y_tgt = datum[2].copy()
+			new_data.append([x_src, x_tgt, y_tgt])
+			for _ in range(NUM_AUGMENT):
+				if rmsTranspose:
+					# increase or decrease rms by max 10 %
+					RMS_TRANSP = 0.2
+					coefficient = RMS_TRANSP * (np.random.rand() * 2 -1)
+					x_src[:,rmsIndexSrc] = x_src[:,rmsIndexSrc] + x_src[:,rmsIndexSrc] * coefficient
+					x_tgt[:,rmsIndexTgt] = x_tgt[:,rmsIndexTgt] + x_tgt[:,rmsIndexTgt] * coefficient
+					y_tgt[rmsIndexTgt] = y_tgt[rmsIndexTgt] + y_tgt[rmsIndexTgt] * coefficient
+					# new_data.append([x_src, x_tgt, y_tgt])
+				if pitchTranspose:
+					# transpose pitch by max 10 %
+					PITCH_TRANSP = 0.3
+					coefficient = PITCH_TRANSP * (np.random.rand() * 2 -1)
+					x_src[:,pitchIndexSrc] = x_src[:,pitchIndexSrc] + x_src[:,pitchIndexSrc] * coefficient
+					x_tgt[:,pitchIndexTgt] = x_tgt[:,pitchIndexTgt] + x_tgt[:,pitchIndexTgt] * coefficient
+					y_tgt[pitchIndexTgt] = y_tgt[pitchIndexTgt] + y_tgt[pitchIndexTgt] * coefficient
+					# new_data.append([x_src, x_tgt, datum[2]])
+				if durationTranspose:
+					# increase or decrease durations by max 10 %
+					DUR_TRANSP = 0.3
+					coefficient = DUR_TRANSP * (np.random.rand() * 2 -1)
+					x_src[:,durationIndexSrc] = x_src[:,durationIndexSrc] + x_src[:,durationIndexSrc] * coefficient
+					x_tgt[:,durationIndexTgt] = x_tgt[:,durationIndexTgt] + x_tgt[:,durationIndexTgt] * coefficient
+					y_tgt[durationIndexTgt] = y_tgt[durationIndexTgt] + y_tgt[durationIndexTgt] * coefficient
+				# if latentsTranspose:
+				# 	# increase or decrease durations by max 10 %
+				# 	LATENTS_TRANSP = 0.2
+				# 	coefficient = LATENTS_TRANSP * (np.random.rand(len(latentIndexSrc)) * 2 -1)
+				# 	x_src[:,latentIndexSrc] = x_src[:,latentIndexSrc] + x_src[:,latentIndexSrc] * coefficient
+				# 	coefficient = LATENTS_TRANSP * (np.random.rand(len(latentIndexTgt)) * 2 -1)
+				# 	x_tgt[:,latentIndexTgt] = x_tgt[:,latentIndexTgt] + x_tgt[:,latentIndexTgt] * coefficient
+				# 	y_tgt[latentIndexTgt] = y_tgt[latentIndexTgt] + y_tgt[latentIndexTgt] * coefficient
+				if maskAugment:
+					MASK_TOKEN = np.ones_like(x_src[0,:-1]) * -10
+					src_len, tgt_len = x_src.shape[0], x_tgt.shape[0]
+					if np.random.rand() > 0.8:
+						x_src[random.randint(0, src_len-1), :-1] = MASK_TOKEN
+						x_tgt[random.randint(0, tgt_len-1), :-1] = MASK_TOKEN
+				if randomSubstitute:
+					src_len, tgt_len = x_src.shape[0]-1, x_tgt.shape[0]-1
+					if np.random.rand() > 0.8:
+						x_src[random.randint(0, src_len), :-1] = x_src[random.randint(0, src_len), :-1]
+						x_tgt[random.randint(0, tgt_len), :-1] = x_tgt[random.randint(0, tgt_len), :-1]
+				new_data.append([x_src, x_tgt, y_tgt])
+	non_augmented_data = data.copy()
+	data = new_data
 
 
 	MAX_SEQ_LEN = int(np.array(seq_lens).mean() + np.array(seq_lens).std())
@@ -428,7 +499,7 @@ def trainTransformerDiscreteT2V(training_parameters, save_dir, model_load_path=N
 
 
 	# LOAD TARGET CORPUS SOUNDFILES FOR CONCATENATIVE SYNTH
-	target_corpus_df = pd.read_csv(f'{training_parameters['target_corpus_path']}/corpus_discrete.csv', index_col=0)
+	target_corpus_df = pd.read_csv(f'{training_parameters["target_corpus_path"]}/corpus_discrete.csv', index_col=0)
 	unique_filenames = unique_elements = list(set(target_corpus_df['filename'].values))
 	concatenative_corpus = {}
 	for audiofilepath in unique_filenames:
@@ -450,7 +521,7 @@ def trainTransformerDiscreteT2V(training_parameters, save_dir, model_load_path=N
 
 	#### TEST ACCURACY WITH CLUSTERING
 	try:
-		tgt_brc = joblib.load(f'{training_parameters['target_corpus_path']}/tgt_birch_classifier.pkl')
+		tgt_brc = joblib.load(f'{training_parameters["target_corpus_path"]}/tgt_birch_classifier.pkl')
 		train_accuracy, train_f1 = evaluateAccuracyWithClustering(model, train_dataloader, device, 
 														PAD_TOKEN, tgt_scaler, target_corpus_df, 
 														features_target, tgt_brc)
@@ -476,29 +547,29 @@ def trainTransformerDiscreteT2V(training_parameters, save_dir, model_load_path=N
 	# EVALUATE MODEL
 	N_tracks = 4
 	corpus_files = os.listdir(training_parameters['sound_corpus_path'])
-	corpus_files = [filename for filename in corpus_files if os.path.isdir(f'{training_parameters['sound_corpus_path']}/{filename}') and filename != '00_process_src' and filename != '00_process_tgt']
+	corpus_files = [filename for filename in corpus_files if os.path.isdir(f'{training_parameters["sound_corpus_path"]}/{filename}') and filename != '00_process_src' and filename != '00_process_tgt']
 	eval_track_names = corpus_files[:4]
-	renderModelOutput(logdir, eval_track_names)
+	# renderModelOutput(logdir, eval_track_names)
 
 	print()
 	print('FINISHED TRAINING')
 	print('-'*20)
-	print(f'training MSE: {evaluation_metrics['training_MSE']}')
-	print(f'validation MSE: {evaluation_metrics['validation_MSE']}')
-	print(f'test MSE: {evaluation_metrics['test_MSE']}')
-	print(f'training R2: {evaluation_metrics['train_r2']}')
-	print(f'validation R2: {evaluation_metrics['val_r2']}')
-	print(f'test R2: {evaluation_metrics['test_r2']}')
-	print(f'training mrSTFT: {evaluation_metrics['training_mrSTFT']}')
-	print(f'validation mrSTFT: {evaluation_metrics['validation_mrSTFT']}')
-	print(f'test mrSTFT: {evaluation_metrics['validation_mrSTFT']}')
+	print(f"training MSE: {evaluation_metrics['training_MSE']}")
+	print(f"validation MSE: {evaluation_metrics['validation_MSE']}")
+	print(f"test MSE: {evaluation_metrics['test_MSE']}")
+	print(f"training R2: {evaluation_metrics['train_r2']}")
+	print(f"validation R2: {evaluation_metrics['val_r2']}")
+	print(f"test R2: {evaluation_metrics['test_r2']}")
+	print(f"training mrSTFT: {evaluation_metrics['training_mrSTFT']}")
+	print(f"validation mrSTFT: {evaluation_metrics['validation_mrSTFT']}")
+	print(f"test mrSTFT: {evaluation_metrics['validation_mrSTFT']}")
 	try:
-		print(f'training accuracy: {evaluation_metrics['training accuracy']}')
-		print(f'validation accuracy: {evaluation_metrics['validation accuracy']}')
-		print(f'test accuracy: {evaluation_metrics['test accuracy']}')
-		print(f'training F1: {evaluation_metrics['training F1']}')
-		print(f'validation F1: {evaluation_metrics['validation F1']}')
-		print(f'test F1: {evaluation_metrics['test F1']}')
+		print(f"training accuracy: {evaluation_metrics['training accuracy']}")
+		print(f"validation accuracy: {evaluation_metrics['validation accuracy']}")
+		print(f"test accuracy: {evaluation_metrics['test accuracy']}")
+		print(f"training F1: {evaluation_metrics['training F1']}")
+		print(f"validation F1: {evaluation_metrics['validation F1']}")
+		print(f"test F1: {evaluation_metrics['test F1']}")
 	except:
 		print("no accuracy score")
 	print('-'*20)
@@ -577,11 +648,11 @@ if __name__ == "__main__":
 	training_parameters['source_corpus_path'] = '00_corpus/guitar-duo/00_process_src'
 	training_parameters['target_corpus_path'] = '00_corpus/guitar-duo/00_process_tgt'
 	training_parameters['sound_corpus_path'] = '00_corpus/guitar-duo'
-	training_parameters['features_source'] = ['rms', 'chroma', 'event_duration']
-	training_parameters['features_target'] = ['rms', 'chroma', 'event_duration']
+	training_parameters['features_source'] = ['rms', 'chroma', 'pitch', 'event_duration']
+	training_parameters['features_target'] = ['rms', 'chroma', 'pitch', 'event_duration']
 	training_parameters['includeStd_src'] = False
 	training_parameters['includeStd_tgt'] = False
-	training_parameters['batch_size'] = 16
+	training_parameters['batch_size'] = 64
 	training_parameters['num_frequency'] = 8
 	training_parameters['dataset_training_percentage'] = 0.8
 	training_parameters['dataset_validation_percentage'] = 0.1
@@ -598,6 +669,7 @@ if __name__ == "__main__":
 	training_parameters['learning_rate'] = 0.001
 	training_parameters['epochs'] = 2000
 	training_parameters['seed'] = 666
+	training_parameters['augment_amt'] = 20
 	save_dir = '01_model_logs'
 
 

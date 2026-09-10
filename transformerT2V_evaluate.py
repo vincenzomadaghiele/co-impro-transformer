@@ -18,8 +18,8 @@ from sklearn.preprocessing import StandardScaler
 
 import dataVisualize
 import dataProcess
-from transformerDiscreteT2V import TransformerDiscreteT2V
-from transformerDiscreteT2V_train import batchify, validationLoop, spectral_loss, evaluateMrSTFT, evaluateAccuracyWithClustering
+from transformerT2V import TransformerDiscreteT2V
+from transformerT2V_train import batchify, validationLoop, spectral_loss, evaluateMrSTFT, evaluateAccuracyWithClustering
 
 
 def makeCrownEnvelope(dur_samples, fade_perc=0.01):
@@ -51,7 +51,7 @@ def renderModelOutput(model_dir, eval_track_names):
 	num_chroma = processing_params['num_chroma']
 
 	# LOAD TARGET CORPUS SOUNDFILES FOR CONCATENATIVE SYNTH
-	target_corpus_df = pd.read_csv(f'{training_parameters['target_corpus_path']}/corpus_discrete.csv', index_col=0)
+	target_corpus_df = pd.read_csv(f'{training_parameters["target_corpus_path"]}/corpus_discrete.csv', index_col=0)
 	unique_filenames = unique_elements = list(set(target_corpus_df['filename'].values))
 	concatenative_corpus = {}
 	for audiofilepath in unique_filenames:
@@ -96,7 +96,7 @@ def renderModelOutput(model_dir, eval_track_names):
 		print('-'*50)
 		print()
 		# extract features from source track
-		src_audiofilepath = f'{training_parameters['sound_corpus_path']}/{eval_track_name}/{processing_params['source_track_name']}.wav'
+		src_audiofilepath = f'{training_parameters["sound_corpus_path"]}/{eval_track_name}/{processing_params["source_track_name"]}.wav'
 		src_signal, _ = librosa.load(src_audiofilepath, sr=sr, mono=True)
 		pred_signal = np.zeros(src_signal.shape[0])
 		signal_df, _ = dataProcess.extractFeatures(src_signal, 
@@ -225,12 +225,12 @@ def renderModelOutput(model_dir, eval_track_names):
 		os.makedirs(results_dir, exist_ok=True)
 		out_signal = np.concatenate((src_signal.reshape(-1,1), pred_signal.reshape(-1,1)), axis=1)
 		sf.write(f'{results_dir}/{eval_track_name}_combined.wav', out_signal, sr, subtype='PCM_24')
-		sf.write(f'{results_dir}/{eval_track_name}_{processing_params['source_track_name']}.wav', src_signal, sr, subtype='PCM_24')
-		sf.write(f'{results_dir}/{eval_track_name}_{processing_params['target_track_name']}.wav', pred_signal, sr, subtype='PCM_24')
+		sf.write(f'{results_dir}/{eval_track_name}_{processing_params["source_track_name"]}.wav', src_signal, sr, subtype='PCM_24')
+		sf.write(f'{results_dir}/{eval_track_name}_{processing_params["target_track_name"]}.wav', pred_signal, sr, subtype='PCM_24')
 
 
 		# VISUALIZE
-		src_signal_path = f'{results_dir}/{eval_track_name}_{processing_params['source_track_name']}.wav'
+		src_signal_path = f'{results_dir}/{eval_track_name}_{processing_params["source_track_name"]}.wav'
 		src_signal, _ = librosa.load(src_signal_path, sr=sr, mono=True)
 		src_signal_df, _ = dataProcess.extractFeatures(src_signal, 
 														sr, 
@@ -245,7 +245,7 @@ def renderModelOutput(model_dir, eval_track_names):
 		src_signal_df['filename'] = src_signal_path
 		src_signal_df.to_csv(f'{results_dir}/src_corpus.csv')
 
-		tgt_signal_path = f'{results_dir}/{eval_track_name}_{processing_params['target_track_name']}.wav'
+		tgt_signal_path = f'{results_dir}/{eval_track_name}_{processing_params["target_track_name"]}.wav'
 		tgt_signal, _ = librosa.load(tgt_signal_path, sr=sr, mono=True)
 		tgt_signal_df, _ = dataProcess.extractFeatures(tgt_signal, 
 														sr, window_size, 
@@ -299,7 +299,7 @@ def evaluateModel(model_dir):
 	num_chroma = processing_params['num_chroma']
 
 	# LOAD TARGET CORPUS SOUNDFILES FOR CONCATENATIVE SYNTH
-	target_corpus_df = pd.read_csv(f'{training_parameters['target_corpus_path']}/corpus_discrete.csv', index_col=0)
+	target_corpus_df = pd.read_csv(f'{training_parameters["target_corpus_path"]}/corpus_discrete.csv', index_col=0)
 	unique_filenames = unique_elements = list(set(target_corpus_df['filename'].values))
 	concatenative_corpus = {}
 	for audiofilepath in unique_filenames:
@@ -327,8 +327,8 @@ def evaluateModel(model_dir):
 
 
 	# LOAD CORPUS
-	source_corpus_df = pd.read_csv(f'{training_parameters['source_corpus_path']}/corpus_discrete.csv', index_col=0)
-	target_corpus_df = pd.read_csv(f'{training_parameters['target_corpus_path']}/corpus_discrete.csv', index_col=0)
+	source_corpus_df = pd.read_csv(f'{training_parameters["source_corpus_path"]}/corpus_discrete.csv', index_col=0)
+	target_corpus_df = pd.read_csv(f'{training_parameters["target_corpus_path"]}/corpus_discrete.csv', index_col=0)
 	src_signals_dfs = []
 	tgt_signals_dfs = []
 	unique_src_filenames = source_corpus_df['filename'].unique()
@@ -339,8 +339,8 @@ def evaluateModel(model_dir):
 	# common_filenames = common_filenames[:4] # select a subset of data
 	for filename in common_filenames:
 		# assume that audio tracks are located one folder before datasets
-		partial_src_df = source_corpus_df[source_corpus_df['filename'] == f'{training_parameters['sound_corpus_path']}/{filename}/{processing_params['source_track_name']}.wav']
-		partial_tgt_df = target_corpus_df[target_corpus_df['filename'] == f'{training_parameters['sound_corpus_path']}/{filename}/{processing_params['target_track_name']}.wav']
+		partial_src_df = source_corpus_df[source_corpus_df['filename'] == f'{training_parameters["sound_corpus_path"]}/{filename}/{processing_params["source_track_name"]}.wav']
+		partial_tgt_df = target_corpus_df[target_corpus_df['filename'] == f'{training_parameters["sound_corpus_path"]}/{filename}/{processing_params["target_track_name"]}.wav']
 		# check that both are non-empty
 		if partial_src_df.shape[0] > 0 and partial_tgt_df.shape[0] > 0:
 			src_signals_dfs.append(partial_src_df)
@@ -504,7 +504,7 @@ def evaluateModel(model_dir):
 
 
 	# LOAD TARGET CORPUS SOUNDFILES FOR CONCATENATIVE SYNTH
-	target_corpus_df = pd.read_csv(f'{training_parameters['target_corpus_path']}/corpus_discrete.csv', index_col=0)
+	target_corpus_df = pd.read_csv(f'{training_parameters["target_corpus_path"]}/corpus_discrete.csv', index_col=0)
 	unique_filenames = unique_elements = list(set(target_corpus_df['filename'].values))
 	concatenative_corpus = {}
 	for audiofilepath in unique_filenames:
@@ -526,7 +526,7 @@ def evaluateModel(model_dir):
 
 	#### TEST ACCURACY WITH CLUSTERING
 	try:
-		tgt_brc = joblib.load(f'{training_parameters['target_corpus_path']}/tgt_birch_classifier.pkl')
+		tgt_brc = joblib.load(f'{training_parameters["target_corpus_path"]}/tgt_birch_classifier.pkl')
 		train_accuracy, train_f1 = evaluateAccuracyWithClustering(model, train_dataloader, device, 
 														PAD_TOKEN, tgt_scaler, target_corpus_df, 
 														features_target, tgt_brc)
@@ -551,22 +551,22 @@ def evaluateModel(model_dir):
 	print()
 	print('MODEL EVALUATION')
 	print('-'*20)
-	print(f'training MSE: {evaluation_metrics['training_MSE']}')
-	print(f'validation MSE: {evaluation_metrics['validation_MSE']}')
-	print(f'test MSE: {evaluation_metrics['test_MSE']}')
-	print(f'training R2: {evaluation_metrics['train_r2']}')
-	print(f'validation R2: {evaluation_metrics['val_r2']}')
-	print(f'test R2: {evaluation_metrics['test_r2']}')
-	print(f'training mrSTFT: {evaluation_metrics['training_mrSTFT']}')
-	print(f'validation mrSTFT: {evaluation_metrics['validation_mrSTFT']}')
-	print(f'test mrSTFT: {evaluation_metrics['validation_mrSTFT']}')
+	print(f"training MSE: {evaluation_metrics['training_MSE']}")
+	print(f"validation MSE: {evaluation_metrics['validation_MSE']}")
+	print(f"test MSE: {evaluation_metrics['test_MSE']}")
+	print(f"training R2: {evaluation_metrics['train_r2']}")
+	print(f"validation R2: {evaluation_metrics['val_r2']}")
+	print(f"test R2: {evaluation_metrics['test_r2']}")
+	print(f"training mrSTFT: {evaluation_metrics['training_mrSTFT']}")
+	print(f"validation mrSTFT: {evaluation_metrics['validation_mrSTFT']}")
+	print(f"test mrSTFT: {evaluation_metrics['validation_mrSTFT']}")
 	try:
-		print(f'training accuracy: {evaluation_metrics['training accuracy']}')
-		print(f'validation accuracy: {evaluation_metrics['validation accuracy']}')
-		print(f'test accuracy: {evaluation_metrics['test accuracy']}')
-		print(f'training F1: {evaluation_metrics['training F1']}')
-		print(f'validation F1: {evaluation_metrics['validation F1']}')
-		print(f'test F1: {evaluation_metrics['test F1']}')
+		print(f"training accuracy: {evaluation_metrics['training accuracy']}")
+		print(f"validation accuracy: {evaluation_metrics['validation accuracy']}")
+		print(f"test accuracy: {evaluation_metrics['test accuracy']}")
+		print(f"training F1: {evaluation_metrics['training F1']}")
+		print(f"validation F1: {evaluation_metrics['validation F1']}")
+		print(f"test F1: {evaluation_metrics['test F1']}")
 	except:
 		print("no accuracy score")
 	print('-'*20)
@@ -583,7 +583,7 @@ if __name__ == "__main__":
 		training_parameters = json.load(f)
 
 	corpus_files = os.listdir(training_parameters['sound_corpus_path'])
-	corpus_files = [filename for filename in corpus_files if os.path.isdir(f'{training_parameters['sound_corpus_path']}/{filename}') and filename != '00_process_src' and filename != '00_process_tgt']
+	corpus_files = [filename for filename in corpus_files if os.path.isdir(f'{training_parameters["sound_corpus_path"]}/{filename}') and filename != '00_process_src' and filename != '00_process_tgt']
 	eval_track_names = corpus_files[:N_tracks]
 
 	evaluateModel(model_dir)

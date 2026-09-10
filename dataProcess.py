@@ -326,7 +326,7 @@ if __name__ == "__main__":
 	tgt_track_name = 'guitar2'
 	processing_params['track_name'] = src_track_name
 	corpus_files = os.listdir(corpus_path)
-	corpus_files = [f'{corpus_path}/{filename}/{processing_params['track_name']}.wav' for filename in corpus_files if os.path.isdir(f'{corpus_path}/{filename}') and filename != '00_process_src' and filename != '00_process_tgt']
+	corpus_files = [f'{corpus_path}/{filename}/{processing_params["track_name"]}.wav' for filename in corpus_files if os.path.isdir(f'{corpus_path}/{filename}') and filename != '00_process_src' and filename != '00_process_tgt']
 	save_dir = f'{corpus_path}/00_process_src'
 	os.makedirs(save_dir, exist_ok=True)
 	with open(f'{save_dir}/featureExtraction_params.json', 'w', encoding='utf-8') as f:
@@ -350,7 +350,7 @@ if __name__ == "__main__":
 
 	# corpus_path = '00_corpus/musdb-reverse'
 	corpus_files = os.listdir(corpus_path)
-	corpus_files = [f'{corpus_path}/{filename}/{processing_params['track_name']}.wav' for filename in corpus_files if os.path.isdir(f'{corpus_path}/{filename}') and filename != '00_process_src' and filename != '00_process_tgt']
+	corpus_files = [f'{corpus_path}/{filename}/{processing_params["track_name"]}.wav' for filename in corpus_files if os.path.isdir(f'{corpus_path}/{filename}') and filename != '00_process_src' and filename != '00_process_tgt']
 	save_dir = f'{corpus_path}/00_process_tgt'
 	os.makedirs(save_dir, exist_ok=True)
 	with open(f'{save_dir}/featureExtraction_params.json', 'w', encoding='utf-8') as f:

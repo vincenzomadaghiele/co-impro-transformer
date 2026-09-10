@@ -1,7 +1,7 @@
 import json
 import os
-from transformerDiscreteT2V_train import trainTransformerDiscreteT2V
-from transformerDiscreteT2V_evaluate import renderModelOutput
+from transformerT2V_train import trainTransformerDiscreteT2V
+from transformerT2V_evaluate import renderModelOutput
 
 if __name__ == "__main__":
 
