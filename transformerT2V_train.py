@@ -583,66 +583,6 @@ def trainTransformerDiscreteT2V(training_parameters, save_dir, model_load_path=N
 
 if __name__ == "__main__":
 
-
-	# databases = [
-	#             'BassDrums', 
-	#             'BassGuit', 
-	#             'DrumsBass', 
-	#             'DrumsGuit', 
-	#             'GuitBass', 
-	#             'GuitDrums'
-	#             ]
-	# srcFeats = [
-	#             ['rms', 'pitch', 'cent', 'event_duration'],
-	#             ['rms', 'chroma', 'pitch', 'event_duration'],
-	#             ['rms', 'flatness', 'cent', 'rolloff', 'event_duration'],
-	#             ['rms', 'flatness', 'cent', 'rolloff', 'event_duration'],
-	#             ['rms', 'chroma', 'pitch', 'event_duration'],
-	#             ['rms', 'chroma', 'pitch', 'event_duration']
-	#             ]
-	# tgtFeats = [
-	#             ['rms', 'flatness', 'cent', 'rolloff', 'event_duration'],
-	#             ['rms', 'chroma', 'pitch', 'event_duration'],
-	#             ['rms', 'pitch', 'cent', 'event_duration'],
-	#             ['rms', 'chroma', 'pitch', 'event_duration'],
-	#             ['rms', 'chroma', 'pitch', 'event_duration'],
-	#             ['rms', 'flatness', 'cent', 'rolloff', 'event_duration']
-	#             ]
-
-	# for i in range(len(databases)):
-
-	#     # SET TRAINING PARAMETERS
-	#     training_parameters = {}
-	#     training_parameters['source_corpus_path'] = f'00_corpus/moisesdb/moisesdb-{databases[i]}/00_process_src'
-	#     training_parameters['target_corpus_path'] = f'00_corpus/moisesdb/moisesdb-{databases[i]}/00_process_tgt'
-	#     training_parameters['sound_corpus_path'] = f'00_corpus/moisesdb/moisesdb-{databases[i]}'
-	#     training_parameters['features_source'] = srcFeats[i]
-	#     training_parameters['features_target'] = tgtFeats[i]
-	#     training_parameters['includeStd_src'] = False
-	#     training_parameters['includeStd_tgt'] = False
-	#     training_parameters['batch_size'] = 16
-	#     training_parameters['num_frequency'] = 8
-	#     training_parameters['dataset_training_percentage'] = 0.7
-	#     training_parameters['dataset_validation_percentage'] = 0.2
-	#     training_parameters['dim_model'] = 32
-	#     training_parameters['num_heads'] = 8
-	#     training_parameters['num_encoder_layers'] = 8
-	#     training_parameters['num_decoder_layers'] = 8
-	#     training_parameters['dim_feedforward'] = 512
-	#     training_parameters['dropout_p'] = 0.3
-	#     training_parameters['window_size_s'] = 8
-	#     training_parameters['pred_time_s'] = 0
-	#     training_parameters['pad_token'] = -1
-	#     training_parameters['loss_fn'] = 'MSE'
-	#     training_parameters['learning_rate'] = 0.001
-	#     training_parameters['epochs'] = 1000
-	#     training_parameters['seed'] = 666
-	#     save_dir = '01_model_logs/PAPER_TESTS'
-
-	#     # TRAIN MODEL
-	#     model_logdir = trainTransformerDiscreteT2V(training_parameters, save_dir)
-
-
 	# SET TRAINING PARAMETERS
 	training_parameters = {}
 	training_parameters['source_corpus_path'] = '00_corpus/guitar-duo/00_process_src'
@@ -671,7 +611,6 @@ if __name__ == "__main__":
 	training_parameters['seed'] = 666
 	training_parameters['augment_amt'] = 20
 	save_dir = '01_model_logs'
-
 
 	# TRAIN MODEL
 	model_logdir = trainTransformerDiscreteT2V(training_parameters, save_dir)
