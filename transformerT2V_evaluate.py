@@ -578,7 +578,7 @@ if __name__ == "__main__":
 
 	# LOAD MODEL
 	N_tracks = 4
-	model_dir = '01_model_logs/2026-01-25/1769341178-transformerDiscreteT2V'
+	model_dir = '01_model_logs/2026-09-10/1789028761-transformerDiscreteT2V'
 	with open(f'{model_dir}/training_config.json', 'r') as f:
 		training_parameters = json.load(f)
 
@@ -587,9 +587,5 @@ if __name__ == "__main__":
 	eval_track_names = corpus_files[:N_tracks]
 
 	evaluateModel(model_dir)
-	# renderModelOutput(model_dir, eval_track_names)
-
-
-
-
-
+	renderModelOutput(model_dir, eval_track_names)
+	
