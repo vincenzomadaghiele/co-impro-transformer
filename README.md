@@ -3,7 +3,7 @@
 Supplementary materials for this paper, including audio and video examples, can be found at [the companion page](https://vincenzomadaghiele.github.io/co-impro-transformer-AIMC/).
 
 More information in the paper ([bib](./seq2seqAIMC.bib)):
-> Vincenzo Madaghiele, Pasquale Lisena, Raphaël Troncy.
+> Vincenzo Madaghiele, Stefano Fasciani, Tejaswinee Kelkar and Çagri Erdem.
 > [**Modeling Relations Between Musical Events in Continuous Time with Transformer Models for Live Co-Improvisational Interactions**](https://zenodo.org/records/22276042).
 > In _7th Conference on AI Music Creativity (AIMC 2026)_, 16-18 September 2026, Staatliches Institut für Musikforschung, Berlin.
 
